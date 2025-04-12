@@ -1,14 +1,16 @@
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { AdminSidebar } from "@/components/sidebar";
+import { Open_Sans } from "next/font/google";
+import StoreProvider from "./Storeprovider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const opensans = Open_Sans({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata = {
@@ -19,11 +21,20 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+      <StoreProvider>
+        <body className={`${opensans.className} antialiased`}>
+          <SidebarProvider>
+            <AdminSidebar />
+            <SidebarInset>
+              <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4">
+                <SidebarTrigger />
+                <div className="font-semibold">Admin Dashboard</div>
+              </header>
+              <main className="flex-1 p-4">{children}</main>
+            </SidebarInset>
+          </SidebarProvider>
+        </body>
+      </StoreProvider>
     </html>
   );
 }
