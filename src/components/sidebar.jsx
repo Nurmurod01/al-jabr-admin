@@ -56,7 +56,7 @@ const NAV_ITEMS = [
   {
     title: "Questions JSON",
     icon: FileJson,
-    href: "/questionsJson",
+    href: "/questionJson",
   },
 ];
 
