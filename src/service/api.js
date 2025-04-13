@@ -5,7 +5,7 @@ const api = createApi({
   reducerPath: "api",
   baseQuery: fetchBaseQuery({
     baseUrl: "https://matematika.al-jabr-edu.uz/api",
-    credentials: "include",
+    // credentials: "include",
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) {
@@ -14,6 +14,7 @@ const api = createApi({
       return headers;
     },
   }),
+  tagTypes: ['Class'],
   endpoints: (builder) => ({
     getQuestions: builder.query({
       query: (lang) => ({
