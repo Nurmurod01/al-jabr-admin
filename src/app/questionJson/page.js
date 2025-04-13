@@ -28,23 +28,37 @@ const SimpleCodeEditor = dynamic(() => import("@/components/CodeEditor"), {
 });
 
 // Default JSON template with proper formatting
-const DEFAULT_JSON_TEMPLATE = `[
-  {
-    "question_text": [
-      { "uz": "string", "ru": "string" }
-    ],
-    "answer": [
-      { "uz": "string", "ru": "string" }
-    ],
-    "options": [
-      { "uz": "string", "ru": "string" },
-      { "uz": "string", "ru": "string" }
-    ],
-    "question_type": "multiple_choice",
-    "question_index": "1_1_1_1_1",
-    "question_level": "easy"
-  }
-]`;
+const DEFAULT_JSON_TEMPLATE = `[{"answer": [
+    {
+      "ru": "string",
+      "uz": "string"
+    }
+  ],
+  "question_image_url": {
+    "ru": "string",
+    "uz": "string"
+  },
+  "question_index": "string",
+  "question_level": "easy",
+  "question_text": {
+    "ru": "string",
+    "uz": "string"
+  },
+  "question_type": "short_answer",
+  "question_video_url": {
+    "ru": "string",
+    "uz": "string"
+  },
+  "solution": {
+    "ru": "string",
+    "uz": "string"
+  },
+  "solution_image_url": {
+    "ru": "string",
+    "uz": "string"
+  },
+}]
+`;
 
 export default function QuestionJson() {
   const [code, setCode] = useState(DEFAULT_JSON_TEMPLATE);
@@ -260,7 +274,7 @@ export default function QuestionJson() {
             <ul className="list-disc pl-5 space-y-1">
               <li>Make sure all property names are in double quotes</li>
               <li>
-                For question_type use: "multiple_choice" or "open" (not "||")
+                For question_type use: "multiple_choice" or "short_answer" (not "||")
               </li>
               <li>For question_level use: "easy", "medium", or "hard"</li>
               <li>
