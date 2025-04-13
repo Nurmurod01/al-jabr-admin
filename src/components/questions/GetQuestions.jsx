@@ -111,102 +111,104 @@ export default function QuestionList({ topicId = "" }) {
   }
 
   return (
-    <div className="space-y-4">
-      {data.map((question) => (
-        <Card key={question.id} className="overflow-hidden">
-          <CardContent className="p-0">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex gap-2 flex-wrap">
-                  <Badge className={getLevelColor(question.question_level)}>
-                    {question.question_level === "easy"
-                      ? "Oson"
-                      : question.question_level === "medium"
-                      ? "O'rta"
-                      : "Qiyin"}
-                  </Badge>
-                  <Badge variant="outline">
-                    {getTypeLabel(question.question_type)}
-                  </Badge>
-                  <Badge variant="secondary">{question.question_index}</Badge>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => toggleExpand(question.id)}
-                  >
-                    {expandedQuestions[question.id] ? (
-                      <ChevronUp />
-                    ) : (
-                      <ChevronDown />
-                    )}
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <Edit className="h-4 w-4 text-blue-500" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => confirmDelete(question.id)}
-                    disabled={isDeleting}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <h3 className="font-medium text-lg">
-                  {question.question_text}
-                </h3>
-                <p className="text-gray-500 text-sm">
-                  {question.question_text}
-                </p>
-              </div>
-
-              {expandedQuestions[question.id] && (
-                <div className="mt-4 space-y-4 border-t pt-4">
-                  <div>
-                    <h4 className="font-medium mb-2">To'g'ri javob:</h4>
-                    <div className="bg-green-50 p-3 rounded-md">
-                      <p>{question.answer[0]}</p>
-                      <p className="text-gray-500 text-sm">
-                        {question.answer[0]}
-                      </p>
-                    </div>
+    <div className="space-y-4  ">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {data.map((question) => (
+          <Card key={question.id} className="overflow-hidden p-0">
+            <CardContent className="p-0">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex gap-2 flex-wrap">
+                    <Badge className={getLevelColor(question.question_level)}>
+                      {question.question_level === "easy"
+                        ? "Oson"
+                        : question.question_level === "medium"
+                        ? "O'rta"
+                        : "Qiyin"}
+                    </Badge>
+                    <Badge variant="outline">
+                      {getTypeLabel(question.question_type)}
+                    </Badge>
+                    <Badge variant="secondary">{question.question_index}</Badge>
                   </div>
-
-                  {question.question_type === "multiple_choice" &&
-                    question.options &&
-                    question.options.length > 0 && (
-                      <div>
-                        <h4 className="font-medium mb-2">Variantlar:</h4>
-                        <div className="space-y-2">
-                          {question.options.map((option, index) => (
-                            <div
-                              key={index}
-                              className={`p-3 rounded-md ${
-                                option.uz === question.answer[0]
-                                  ? "bg-green-50 border border-green-200"
-                                  : "bg-gray-50"
-                              }`}
-                            >
-                              <p>{option}</p>
-                              <p className="text-gray-500 text-sm">
-                                {option}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => toggleExpand(question.id)}
+                    >
+                      {expandedQuestions[question.id] ? (
+                        <ChevronUp />
+                      ) : (
+                        <ChevronDown />
+                      )}
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Edit className="h-4 w-4 text-blue-500" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => confirmDelete(question.id)}
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+
+                <div className="mb-3">
+                  <h3 className="font-medium text-lg">
+                    {question.question_text}
+                  </h3>
+                  <p className="text-gray-500 text-sm">
+                    {question.question_text}
+                  </p>
+                </div>
+
+                {expandedQuestions[question.id] && (
+                  <div className="mt-4 space-y-4 border-t pt-4">
+                    <div>
+                      <h4 className="font-medium mb-2">To'g'ri javob:</h4>
+                      <div className="bg-green-50 p-3 rounded-md">
+                        <p>{question.answer[0]}</p>
+                        <p className="text-gray-500 text-sm">
+                          {question.answer[0]}
+                        </p>
+                      </div>
+                    </div>
+
+                    {question.question_type === "multiple_choice" &&
+                      question.options &&
+                      question.options.length > 0 && (
+                        <div>
+                          <h4 className="font-medium mb-2">Variantlar:</h4>
+                          <div className="space-y-2">
+                            {question.options.map((option, index) => (
+                              <div
+                                key={index}
+                                className={`p-3 rounded-md ${
+                                  option.uz === question.answer[0]
+                                    ? "bg-green-50 border border-green-200"
+                                    : "bg-gray-50"
+                                }`}
+                              >
+                                <p>{option}</p>
+                                <p className="text-gray-500 text-sm">
+                                  {option}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       {data.length > 0 && (
         <div className="flex justify-center gap-2 mt-6">

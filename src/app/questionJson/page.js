@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "react-hot-toast";
+import { Loader2 } from "lucide-react";
 
 const SimpleCodeEditor = dynamic(() => import("@/components/CodeEditor"), {
   ssr: false,
@@ -25,13 +27,12 @@ const SimpleCodeEditor = dynamic(() => import("@/components/CodeEditor"), {
   ),
 });
 
-export default function QuestionJson() {
-  const [code, setCode] = useState(`[
+// Default JSON template with proper formatting
+const DEFAULT_JSON_TEMPLATE = `[
   {
-    "question_text": {
-      "uz": "string",
-      "ru": "string"
-    },
+    "question_text": [
+      { "uz": "string", "ru": "string" }
+    ],
     "answer": [
       { "uz": "string", "ru": "string" }
     ],
@@ -39,35 +40,83 @@ export default function QuestionJson() {
       { "uz": "string", "ru": "string" },
       { "uz": "string", "ru": "string" }
     ],
-    "question_type": "multiple_choice" || "open",
-    "question_index": "string --> 1_1_1_1_1 биринчи синф, биринчи боб, бринчи топикки 1-группанинг 1-соволи",
-    "question_level": "easy" || "medium" || "hard"
+    "question_type": "multiple_choice",
+    "question_index": "1_1_1_1_1",
+    "question_level": "easy"
   }
-]`);
+]`;
 
+export default function QuestionJson() {
+  const [code, setCode] = useState(DEFAULT_JSON_TEMPLATE);
   const [classId, setClassId] = useState("");
   const [chapterId, setChapterId] = useState("");
   const [topicId, setTopicId] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: classes, isLoading: loadingClasses } = useGetClassQuery();
-  const { data: chapters, isLoading: loadingChapters } =
-    useGetChaptersQuery(classId);
-  const { data: topics, isLoading: loadingTopics } =
-    useGetTopicsQuery(chapterId);
+  const { data: chapters, isLoading: loadingChapters } = useGetChaptersQuery(
+    classId || ""
+  );
+  const { data: topics, isLoading: loadingTopics } = useGetTopicsQuery(
+    chapterId || ""
+  );
   const [addQuestion] = useAddQuestionMutation();
-  const handleSave = async () => {
-    try {
-      const formattedCode = code.replace(/([\w\d_]+):/g, '"$1":'); 
-      console.log("Formatted code for parsing:", formattedCode); 
 
-      const parsedJson = JSON.parse(formattedCode);
+  // Reset dependent fields when parent selection changes
+  useEffect(() => {
+    if (classId) {
+      setChapterId("");
+      setTopicId("");
+    }
+  }, [classId]);
+
+  useEffect(() => {
+    if (chapterId) {
+      setTopicId("");
+    }
+  }, [chapterId]);
+
+  const handleSave = async () => {
+    if (!isFormValid) return;
+
+    setIsSubmitting(true);
+    try {
+      // Try to parse the JSON directly first
+      let parsedJson;
+      try {
+        parsedJson = JSON.parse(code);
+      } catch (parseError) {
+        // If direct parsing fails, try to fix common JSON issues
+        const fixedCode = code
+          // Replace single quotes with double quotes
+          .replace(/'/g, '"')
+          // Fix property names without quotes
+          .replace(
+            /(\s*?{\s*?|\s*?,\s*?)(['"])?([a-zA-Z0-9_]+)(['"])?:/g,
+            '$1"$3":'
+          )
+          // Fix "||" in JSON which is invalid
+          .replace(/"\s*\|\|\s*"/g, '","');
+
+        console.log("Attempting to parse fixed JSON:", fixedCode);
+        parsedJson = JSON.parse(fixedCode);
+      }
+      console.log(parsedJson);
 
       if (!Array.isArray(parsedJson)) {
-        throw new Error("Kiritilgan JSON massiv ko'rinishida emas.");
+        throw new Error("JSON must be an array");
       }
 
+      let successCount = 0;
       for (let i = 0; i < parsedJson.length; i++) {
         const question = parsedJson[i];
+        console.log(question);
+
+        // Validate required fields
+        if (!question.question_text || !question.question_type) {
+          toast.error(`Question ${i + 1} is missing required fields`);
+          continue;
+        }
 
         const formatted = {
           ...question,
@@ -76,46 +125,47 @@ export default function QuestionJson() {
 
         try {
           await addQuestion(formatted).unwrap();
-          console.log(`Savol ${i + 1} muvaffaqiyatli qo‘shildi.`);
+          successCount++;
         } catch (questionError) {
-          console.error(`❌ ${i + 1}-savolda xatolik:`, questionError);
+          console.error(`Error in question ${i + 1}:`, questionError);
+          toast.error(`Error adding question ${i + 1}`);
         }
       }
+
+      if (successCount > 0) {
+        toast.success(`Successfully added ${successCount} question(s)`);
+      }
     } catch (err) {
-      console.error("❌ JSON parsingda xatolik:", err);
+      console.error("JSON parsing error:", err);
+      toast.error("Invalid JSON format. Please check your input.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    setChapterId("");
-    setTopicId("");
-  }, [classId]);
-
-  useEffect(() => {
-    setTopicId("");
-  }, [chapterId]);
 
   const isFormValid = classId && chapterId && topicId;
 
   return (
-    <main className="container mx-auto px-4">
-      <h1 className="font-bold text-xl mb-4 text-center">Add Question</h1>
+    <main className="container mx-auto px-4 py-6">
+      <h1 className="font-bold text-2xl mb-6 text-center">Add Questions</h1>
 
-      <Card>
+      <Card className="shadow-md">
         <CardHeader>
           <CardTitle className="mb-4">Select Class, Chapter, Topic</CardTitle>
           <div className="flex flex-col md:flex-row md:justify-between gap-4">
             <Select
               value={classId}
-              className="w-full"
               onValueChange={setClassId}
+              disabled={loadingClasses}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select class" />
               </SelectTrigger>
               <SelectContent>
                 {loadingClasses ? (
-                  <SelectItem disabled>Loading classes...</SelectItem>
+                  <SelectItem value="loading" disabled>
+                    Loading classes...
+                  </SelectItem>
                 ) : classes && classes.length > 0 ? (
                   classes.map((classItem) => (
                     <SelectItem key={classItem.id} value={classItem.id}>
@@ -123,7 +173,9 @@ export default function QuestionJson() {
                     </SelectItem>
                   ))
                 ) : (
-                  <SelectItem disabled>No classes found</SelectItem>
+                  <SelectItem value="none" disabled>
+                    No classes found
+                  </SelectItem>
                 )}
               </SelectContent>
             </Select>
@@ -148,7 +200,9 @@ export default function QuestionJson() {
                     </SelectItem>
                   ))
                 ) : (
-                  <SelectItem disabled>Chapters not found</SelectItem>
+                  <SelectItem value="none" disabled>
+                    No chapters found
+                  </SelectItem>
                 )}
               </SelectContent>
             </Select>
@@ -163,7 +217,9 @@ export default function QuestionJson() {
               </SelectTrigger>
               <SelectContent>
                 {loadingTopics ? (
-                  <SelectItem disabled>Loading topics...</SelectItem>
+                  <SelectItem value="loading" disabled>
+                    Loading topics...
+                  </SelectItem>
                 ) : topics && topics.length > 0 ? (
                   topics.map((topic) => (
                     <SelectItem key={topic.id} value={topic.id}>
@@ -171,16 +227,26 @@ export default function QuestionJson() {
                     </SelectItem>
                   ))
                 ) : (
-                  <SelectItem disabled>No topics found</SelectItem>
+                  <SelectItem value="none" disabled>
+                    No topics found
+                  </SelectItem>
                 )}
               </SelectContent>
             </Select>
+
             <Button
               onClick={handleSave}
               className="bg-teal-500 hover:bg-teal-600"
-              disabled={!isFormValid}
+              disabled={!isFormValid || isSubmitting}
             >
-              Add Question
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Add Questions"
+              )}
             </Button>
           </div>
         </CardHeader>
@@ -188,6 +254,20 @@ export default function QuestionJson() {
         <CardContent>
           <div className="mb-4">
             <SimpleCodeEditor initialValue={code} onChange={setCode} />
+          </div>
+          <div className="text-sm text-muted-foreground mt-2">
+            <p className="font-medium mb-1">JSON Format Guide:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Make sure all property names are in double quotes</li>
+              <li>
+                For question_type use: "multiple_choice" or "open" (not "||")
+              </li>
+              <li>For question_level use: "easy", "medium", or "hard"</li>
+              <li>
+                question_index format: class_chapter_topic_group_question (e.g.,
+                "1_1_1_1_1")
+              </li>
+            </ul>
           </div>
         </CardContent>
       </Card>

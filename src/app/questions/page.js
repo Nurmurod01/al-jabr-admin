@@ -20,7 +20,6 @@ import { Plus, X } from "lucide-react";
 import QuestionList from "@/components/questions/GetQuestions";
 import QuestionForm from "@/components/questions/Questions";
 
-
 export default function QuestionsPage() {
   const [classId, setClassId] = useState("");
   const [chapterId, setChapterId] = useState("");

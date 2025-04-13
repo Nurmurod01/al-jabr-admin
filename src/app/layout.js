@@ -7,6 +7,7 @@ import {
 import { AdminSidebar } from "@/components/sidebar";
 import { Open_Sans } from "next/font/google";
 import StoreProvider from "./Storeprovider";
+import { Toaster } from "react-hot-toast";
 
 const opensans = Open_Sans({
   subsets: ["latin"],
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <StoreProvider>
         <body className={`${opensans.className} antialiased`}>
+          <Toaster position="top-right" reverseOrder={false} />
           <SidebarProvider>
             <AdminSidebar />
             <SidebarInset>
