@@ -1,65 +1,60 @@
 "use client";
 
-import { useGetTopicQuery } from "@/store/api";
-import { useState } from "react";
+import { useGetAllTopicsQuery, useGetTopicsQuery } from "@/service/api";
+import { useEffect, useState } from "react";
 
-export default function TopicList() {
-  const [classId, setClassId] = useState("");
-  const [chapterId, setChapterId] = useState("");
+export default function TopicList({ chapterId }) {
+  const {
+    data: chapterTopics,
+    isLoading: isChapterTopicsLoading,
+    isError: isChapterTopicsError,
+  } = useGetTopicsQuery(chapterId, { skip: !chapterId });
 
   const {
-    data: topics,
+    data: allTopics,
     isLoading,
-    isError,
-  } = useGetTopicQuery(
-    { class_id: classId, chapter_id: chapterId },
-    { skip: !classId && !chapterId }
-  );
+    isError: isAllTopicsError,
+  } = useGetAllTopicsQuery(undefined, { skip: !!chapterId });
+
+  const [topics, setTopics] = useState([]);
+
+  useEffect(() => {
+    if (chapterId && chapterTopics) {
+      setTopics(chapterTopics);
+    } else if (!chapterId && allTopics) {
+      setTopics(allTopics);
+    }
+  }, [chapterId, chapterTopics, allTopics]);
+
+  if (isChapterTopicsLoading || isLoading)
+    return <div>Yuklanmoqda...</div>;
+  if (isChapterTopicsError || isAllTopicsError)
+    return <div>Xatolik yuz berdi</div>;
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Mavzular ro‘yxati</h2>
+    <div className="container mx-auto flex flex-col items-center p-4">
+      <h2 className="text-2xl font-bold mb-4">Topic List</h2>
 
-      {/* Filter uchun inputlar */}
-      <div className="flex gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Class ID"
-          value={classId}
-          onChange={(e) => setClassId(e.target.value)}
-          className="border p-2 rounded w-full"
-        />
-        <input
-          type="text"
-          placeholder="Chapter ID"
-          value={chapterId}
-          onChange={(e) => setChapterId(e.target.value)}
-          className="border p-2 rounded w-full"
-        />
-      </div>
-
-      {isLoading && <p>Yuklanmoqda...</p>}
-      {isError && <p>Xatolik yuz berdi!</p>}
 
       {topics && topics.length > 0 ? (
-        <ul className="space-y-2">
+        <ul className="space-y-2 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {topics.map((topic) => (
             <li
               key={topic.id}
               className="border rounded-md p-4 shadow-sm hover:shadow-md transition"
             >
               <h3 className="text-lg font-semibold">
-                {topic.name?.uz || "Noma’lum"}
+                {topic.name || "Undefind"}
               </h3>
               <p className="text-gray-600 text-sm">
-                {topic.title?.uz || "Sarlavha yo‘q"}
+                {topic.title || "Undefind"}
               </p>
               <p className="text-xs text-gray-400">ID: {topic.id}</p>
             </li>
           ))}
         </ul>
       ) : (
-        !isLoading && <p>Hozircha mavzular yo‘q.</p>
+        !isLoading && <p className="text-xl">Topics not found.</p>
       )}
     </div>
   );

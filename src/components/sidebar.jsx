@@ -19,7 +19,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -95,7 +94,7 @@ export function AdminSidebar() {
     <Sidebar>
       <SidebarHeader className="h-16 border-b border-sidebar-border">
         <Link href="/" className="flex items-center gap-2 px-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-teal-700 text-primary-foreground">
             <Package className="h-5 w-5" />
           </div>
           <div className="font-semibold">Admin Panel</div>

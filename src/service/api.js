@@ -35,7 +35,7 @@ const api = createApi({
     }),
     getChapters: builder.query({
       query: (id) => ({
-        url: `/chapters/class/${id}`,
+        url: `/chapters/class/{id}?class_id=${id}`,
         headers: { "Content-Type": "application/json" },
       }),
     }),
@@ -47,18 +47,25 @@ const api = createApi({
         headers: { "Content-Type": "application/json" },
       }),
     }),
-    getTopic: builder.query({
-      query: ({ class_id, chapter_id }) => {
-        let query = "/topics";
-        const params = new URLSearchParams();
-
-        if (class_id) params.append("class_id", class_id);
-        if (chapter_id) params.append("chapter_id", chapter_id);
-
-        if (params.toString()) query += `?${params.toString()}`;
-
-        return { url: query, method: "GET" };
-      },
+    getTopics: builder.query({
+      query: (chapter_id) => ({
+        url: `/chapter/${chapter_id}/topics`,
+        method: "GET",
+      }),
+    }),
+    getAllTopics: builder.query({
+      query: () => ({
+        url: "/gettopics?language=uz",
+        method: "GET",
+      }),
+    }),
+    addQuestion: builder.mutation({
+      query: (question) => ({
+        url: "/questions",
+        method: "POST",
+        body: question,
+        headers: { "Content-Type": "application/json" },
+      }),
     }),
   }),
 });
@@ -69,6 +76,8 @@ export const {
   useGetClassQuery,
   useGetChaptersQuery,
   useAddTopicMutation,
-  useGetTopicQuery,
+  useGetTopicsQuery,
+  useGetAllTopicsQuery,
+  useAddQuestionMutation,
 } = api;
 export default api;
