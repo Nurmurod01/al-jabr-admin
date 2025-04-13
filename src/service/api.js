@@ -5,7 +5,6 @@ const api = createApi({
   reducerPath: "api",
   baseQuery: fetchBaseQuery({
     baseUrl: "https://matematika.al-jabr-edu.uz/api",
-
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) {
@@ -14,6 +13,7 @@ const api = createApi({
       return headers;
     },
   }),
+  tagTypes: ["Class"],
   endpoints: (builder) => ({
     getQuestions: builder.query({
       query: () => ({
@@ -67,6 +67,13 @@ const api = createApi({
         headers: { "Content-Type": "application/json" },
       }),
     }),
+    deleteQuestion: builder.mutation({
+      query: (id) => ({
+        url: `/questions/${id}`,
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      }),
+    }),
   }),
 });
 
@@ -79,5 +86,6 @@ export const {
   useGetTopicsQuery,
   useGetAllTopicsQuery,
   useAddQuestionMutation,
+  useDeleteQuestionMutation,
 } = api;
 export default api;

@@ -40,7 +40,7 @@ const NAV_ITEMS = [
   {
     title: "Chapter",
     icon: Package,
-    href: "/chapter",
+    href: "/chapters",
   },
   {
     title: "Topic",
