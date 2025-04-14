@@ -27,37 +27,63 @@ const SimpleCodeEditor = dynamic(() => import("@/components/CodeEditor"), {
   ),
 });
 
-// Default JSON template with proper formatting
-const DEFAULT_JSON_TEMPLATE = `[{"answer": [
-    {
+const DEFAULT_JSON_TEMPLATE = `[
+  {
+    "answer": [
+      {
+        "ru": "string",
+        "uz": "string"
+      }
+    ],
+    "information": {
+      "chapter": "string",
+      "class": "string",
+      "count": 0,
+      "difficulty": "string",
+      "group": "string",
+      "index": "string",
+      "topic": "string",
+      "type": "string"
+    },
+    "options": [
+      {
+        "ru": "string",
+        "uz": "string"
+      },
+      {
+        "ru": "string",
+        "uz": "string"
+      }
+    ],
+    "options_url": [
+      {
+        "ru": "string",
+        "uz": "string"
+      }
+    ],
+    "question": {
       "ru": "string",
       "uz": "string"
-    }
-  ],
-  "question_image_url": {
-    "ru": "string",
-    "uz": "string"
-  },
-  "question_index": "string",
-  "question_level": "easy",
-  "question_text": {
-    "ru": "string",
-    "uz": "string"
-  },
-  "question_type": "short_answer",
-  "question_video_url": {
-    "ru": "string",
-    "uz": "string"
-  },
-  "solution": {
-    "ru": "string",
-    "uz": "string"
-  },
-  "solution_image_url": {
-    "ru": "string",
-    "uz": "string"
-  },
-}]
+    },
+    "question_image_url": {
+      "ru": "string",
+      "uz": "string"
+    },
+    "question_video_url": {
+      "ru": "string",
+      "uz": "string"
+    },
+    "solution_image_url": {
+      "ru": "string",
+      "uz": "string"
+    },
+    "solution_steps": {
+      "ru": "string",
+      "uz": "string"
+    },
+    "topic_id": "string"
+  }
+]
 `;
 
 export default function QuestionJson() {
@@ -66,7 +92,6 @@ export default function QuestionJson() {
   const [chapterId, setChapterId] = useState("");
   const [topicId, setTopicId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const { data: classes, isLoading: loadingClasses } = useGetClassQuery();
   const { data: chapters, isLoading: loadingChapters } = useGetChaptersQuery(
     classId || ""
@@ -76,7 +101,6 @@ export default function QuestionJson() {
   );
   const [addQuestion] = useAddQuestionMutation();
 
-  // Reset dependent fields when parent selection changes
   useEffect(() => {
     if (classId) {
       setChapterId("");
@@ -95,21 +119,16 @@ export default function QuestionJson() {
 
     setIsSubmitting(true);
     try {
-      // Try to parse the JSON directly first
       let parsedJson;
       try {
         parsedJson = JSON.parse(code);
       } catch (parseError) {
-        // If direct parsing fails, try to fix common JSON issues
         const fixedCode = code
-          // Replace single quotes with double quotes
           .replace(/'/g, '"')
-          // Fix property names without quotes
           .replace(
             /(\s*?{\s*?|\s*?,\s*?)(['"])?([a-zA-Z0-9_]+)(['"])?:/g,
             '$1"$3":'
           )
-          // Fix "||" in JSON which is invalid
           .replace(/"\s*\|\|\s*"/g, '","');
 
         console.log("Attempting to parse fixed JSON:", fixedCode);
@@ -126,7 +145,6 @@ export default function QuestionJson() {
         const question = parsedJson[i];
         console.log(question);
 
-        // Validate required fields
         if (!question.question_text || !question.question_type) {
           toast.error(`Question ${i + 1} is missing required fields`);
           continue;
@@ -170,7 +188,6 @@ export default function QuestionJson() {
             <Select
               value={classId}
               onValueChange={setClassId}
-              disabled={loadingClasses}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select class" />
@@ -274,7 +291,8 @@ export default function QuestionJson() {
             <ul className="list-disc pl-5 space-y-1">
               <li>Make sure all property names are in double quotes</li>
               <li>
-                For question_type use: "multiple_choice" or "short_answer" (not "||")
+                For question_type use: "multiple_choice" or "short_answer" (not
+                "||")
               </li>
               <li>For question_level use: "easy", "medium", or "hard"</li>
               <li>
