@@ -4,13 +4,14 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 const api = createApi({
   reducerPath: "api",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://matematika.al-jabr-edu.uz/api",
+    baseUrl: "http://35.154.102.246:8086/api",
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
-      return headers;
+      //35.154.102.246:8086/api
+      http: return headers;
     },
   }),
   tagTypes: ["Class"],

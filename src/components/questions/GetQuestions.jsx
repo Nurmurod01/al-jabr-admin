@@ -81,8 +81,8 @@ export default function QuestionList({ topicId = "" }) {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-5">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
           <Card key={i}>
             <CardContent className="p-6">
               <div className="space-y-4">
@@ -104,7 +104,7 @@ export default function QuestionList({ topicId = "" }) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <p className="text-gray-500">Savollar topilmadi</p>
+          <p className="text-gray-500">Questions not found</p>
         </CardContent>
       </Card>
     );

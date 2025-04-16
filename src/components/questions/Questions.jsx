@@ -79,7 +79,6 @@ const MediaUrlFieldGroup = ({ label, values, onChange, onClear }) => (
   <div className="space-y-2">
     <div className="flex justify-between items-center">
       <Label>{label}</Label>
-      
     </div>
     <LanguageFieldPair
       label={label}
@@ -121,6 +120,18 @@ export default function QuestionForm() {
     questionType: "mcq",
     questionDifficulty: "easy",
   });
+
+  // Define groups with proper IDs (fixing the key prop issue)
+  const groups = [
+    { id: "A", name: "A" },
+    { id: "B", name: "B" },
+    { id: "C", name: "C" },
+    { id: "D", name: "D" },
+    { id: "E", name: "E" },
+  ];
+
+  // Add state for selected group
+  const [selectedGroup, setSelectedGroup] = useState("");
 
   const [options, setOptions] = useState(initialOptions);
   const [information, setInformation] = useState(initialInformation);
@@ -189,6 +200,16 @@ export default function QuestionForm() {
     }
   }, [topicId, topics]);
 
+  // Update information when group is selected
+  useEffect(() => {
+    if (selectedGroup) {
+      setInformation((prev) => ({
+        ...prev,
+        group: selectedGroup,
+      }));
+    }
+  }, [selectedGroup]);
+
   // Handle question data updates
   const updateQuestionData = (field, value) => {
     setQuestionData((prev) => ({ ...prev, [field]: value }));
@@ -244,7 +265,8 @@ export default function QuestionForm() {
     questionUz &&
     questionRu &&
     answerUz &&
-    answerRu;
+    answerRu &&
+    selectedGroup; // Added group validation
 
   // Reset form
   const resetForm = () => {
@@ -263,6 +285,7 @@ export default function QuestionForm() {
     setSolutionSteps(initialLanguagePair);
     setOptionsUrl([]);
     setInformation(initialInformation);
+    setSelectedGroup(""); // Reset group
   };
 
   // Handle form submission
@@ -298,6 +321,7 @@ export default function QuestionForm() {
           ...information,
           difficulty: questionDifficulty,
           type: questionType,
+          group: selectedGroup, // Make sure to send the selected group
         },
         options: questionType === "mcq" ? validOptions : [],
         options_url: validOptionUrls.length > 0 ? validOptionUrls : [],
@@ -323,6 +347,7 @@ export default function QuestionForm() {
             : null,
         topic_id: topicId,
       };
+      console.log(questionPayload);
 
       await addQuestion(questionPayload).unwrap();
       toast.success("Question added successfully");
@@ -337,7 +362,7 @@ export default function QuestionForm() {
       <h1 className="font-bold text-2xl mb-6 text-center">Add Question</h1>
 
       <FormSection title="Select Class, Chapter and Topic *">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="flex justify-between gap-6">
           {/* Class Selection */}
           <div className="space-y-2">
             <Label htmlFor="class-select">Class</Label>
@@ -366,15 +391,18 @@ export default function QuestionForm() {
           </div>
 
           {/* Chapter Selection */}
-          <div className="space-y-2">
+          <div className="space-y-2 max-w-xs">
             <Label htmlFor="chapter-select">Chapter</Label>
             <Select
               value={chapterId}
               onValueChange={setChapterId}
               disabled={!classId || loadingChapters}
             >
-              <SelectTrigger id="chapter-select">
-                <SelectValue placeholder="Select chapter" />
+              <SelectTrigger id="chapter-select" className="w-full">
+                <SelectValue
+                  placeholder="Select chapter"
+                  className="truncate max-w-[calc(100%-20px)]"
+                />
               </SelectTrigger>
               <SelectContent>
                 {loadingChapters ? (
@@ -383,8 +411,8 @@ export default function QuestionForm() {
                   </SelectItem>
                 ) : chapters?.length > 0 ? (
                   chapters.map((ch) => (
-                    <SelectItem key={ch.id} value={ch.id}>
-                      {ch.name.uz}
+                    <SelectItem key={ch.id} value={ch.id} className="w-full">
+                      <div className="truncate max-w-[150px]">{ch.name.uz}</div>
                     </SelectItem>
                   ))
                 ) : (
@@ -404,8 +432,11 @@ export default function QuestionForm() {
               onValueChange={setTopicId}
               disabled={!chapterId || loadingTopics}
             >
-              <SelectTrigger id="topic-select">
-                <SelectValue placeholder="Select topic" />
+              <SelectTrigger id="topic-select" className="w-full">
+                <SelectValue
+                  placeholder="Select topic"
+                  className="truncate max-w-[calc(100%-20px)]"
+                />
               </SelectTrigger>
               <SelectContent>
                 {loadingTopics ? (
@@ -414,8 +445,12 @@ export default function QuestionForm() {
                   </SelectItem>
                 ) : topics?.length > 0 ? (
                   topics.map((topic) => (
-                    <SelectItem key={topic.id} value={topic.id}>
-                      {topic.name}
+                    <SelectItem
+                      key={topic.id}
+                      value={topic.id}
+                      className="w-full"
+                    >
+                      <div className="truncate max-w-[150px]">{topic.name}</div>
                     </SelectItem>
                   ))
                 ) : (
@@ -433,11 +468,39 @@ export default function QuestionForm() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
             <Label htmlFor="group">Group</Label>
+            {/* Fixed the group selection dropdown */}
+            <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+              <SelectTrigger id="group">
+                <SelectValue placeholder="Select group" />
+              </SelectTrigger>
+              <SelectContent>
+                {groups?.length > 0 ? (
+                  groups.map((group) => (
+                    <SelectItem key={group.id} value={group.id}>
+                      {group.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem disabled value="none">
+                    No groups found
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="count">Number</Label>
             <Input
-              id="group"
-              value={information.group}
-              onChange={(e) => handleInformationChange("group", e.target.value)}
-              placeholder="Enter group name"
+              id="count"
+              type="number"
+              value={information.count}
+              onChange={(e) =>
+                handleInformationChange(
+                  "count",
+                  Number.parseInt(e.target.value)
+                )
+              }
+              placeholder="Enter count"
             />
           </div>
           <div className="space-y-2">
@@ -447,21 +510,6 @@ export default function QuestionForm() {
               value={information.index}
               onChange={(e) => handleInformationChange("index", e.target.value)}
               placeholder="Enter index"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="count">Count</Label>
-            <Input
-              id="count"
-              type="number"
-              value={information.count}
-              onChange={(e) =>
-                handleInformationChange(
-                  "count",
-                  Number.parseInt(e.target.value) || 0
-                )
-              }
-              placeholder="Enter count"
             />
           </div>
         </div>
@@ -618,9 +666,6 @@ export default function QuestionForm() {
             </div>
           )}
 
-         
-      
-
           {/* Solution Image URLs */}
           <MediaUrlFieldGroup
             label="Solution Images"
@@ -633,7 +678,6 @@ export default function QuestionForm() {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <Label>Solution Steps *</Label>
-              
             </div>
             <LanguageFieldPair
               label="Solution Steps*"
