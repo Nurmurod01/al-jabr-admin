@@ -11,7 +11,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 export default function QuestionList({ topicId = "" }) {
@@ -76,7 +75,7 @@ export default function QuestionList({ topicId = "" }) {
   };
 
   const getTypeLabel = (type) => {
-    return type === "multiple_choice" ? "Test savoli" : "Ochiq savol";
+    return type === "mcq" ? "Test" : "Open";
   };
 
   if (isLoading) {
@@ -121,10 +120,10 @@ export default function QuestionList({ topicId = "" }) {
                   <div className="flex gap-2 flex-wrap">
                     <Badge className={getLevelColor(question.question_level)}>
                       {question.question_level === "easy"
-                        ? "Oson"
+                        ? "Easy"
                         : question.question_level === "medium"
-                        ? "O'rta"
-                        : "Qiyin"}
+                        ? "Medium"
+                        : "Hard"}
                     </Badge>
                     <Badge variant="outline">
                       {getTypeLabel(question.question_type)}
@@ -161,9 +160,6 @@ export default function QuestionList({ topicId = "" }) {
                   <h3 className="font-medium text-lg">
                     {question.question_text}
                   </h3>
-                  <p className="text-gray-500 text-sm">
-                    {question.question_text}
-                  </p>
                 </div>
 
                 {expandedQuestions[question.id] && (
@@ -172,31 +168,25 @@ export default function QuestionList({ topicId = "" }) {
                       <h4 className="font-medium mb-2">To'g'ri javob:</h4>
                       <div className="bg-green-50 p-3 rounded-md">
                         <p>{question.answer[0]}</p>
-                        <p className="text-gray-500 text-sm">
-                          {question.answer[0]}
-                        </p>
                       </div>
                     </div>
 
-                    {question.question_type === "multiple_choice" &&
+                    {question.question_type === "mcq" &&
                       question.options &&
                       question.options.length > 0 && (
                         <div>
                           <h4 className="font-medium mb-2">Variantlar:</h4>
-                          <div className="space-y-2">
+                          <div className="space-y-2 ">
                             {question.options.map((option, index) => (
                               <div
                                 key={index}
                                 className={`p-3 rounded-md ${
                                   option.uz === question.answer[0]
-                                    ? "bg-green-50 border border-green-200"
+                                    ? "bg-green-50 border border-green-400"
                                     : "bg-gray-50"
                                 }`}
                               >
                                 <p>{option}</p>
-                                <p className="text-gray-500 text-sm">
-                                  {option}
-                                </p>
                               </div>
                             ))}
                           </div>
