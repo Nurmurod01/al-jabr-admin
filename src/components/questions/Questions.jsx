@@ -468,7 +468,6 @@ export default function QuestionForm() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
             <Label htmlFor="group">Group</Label>
-            {/* Fixed the group selection dropdown */}
             <Select value={selectedGroup} onValueChange={setSelectedGroup}>
               <SelectTrigger id="group">
                 <SelectValue placeholder="Select group" />

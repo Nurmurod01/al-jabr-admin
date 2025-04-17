@@ -124,16 +124,14 @@ export default function TopicPage() {
       <TopicList chapterId={chapterId} />
       {isModalOpen && (
         <div className="fixed inset-0 h-screen bg-black/80 flex items-center justify-center z-50">
-          <div
-            className="bg-white p-6 rounded-xl shadow-lg w-full max-w-2xl relative"
-          >
+          <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-2xl relative">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-7 right-5 text-gray-500 hover:text-red-500 text-lg"
             >
               <X />
             </button>
-            <AddTopicForm  />
+            <AddTopicForm />
           </div>
         </div>
       )}
