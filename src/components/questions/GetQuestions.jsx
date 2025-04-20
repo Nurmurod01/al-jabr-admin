@@ -1,10 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useGetQuestionsQuery, useDeleteQuestionMutation } from "@/service/api";
+import {
+  useGetQuestionsQuery,
+  useDeleteQuestionMutation,
+  useGetQuestionsByTopicQuery,
+} from "@/service/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Eye, ChevronDown, ChevronUp } from "lucide-react";
+import { Edit, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -12,21 +16,55 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Link from "next/link";
 
-export default function QuestionList({ topicId = "" }) {
+export default function QuestionList({
+  topicId = "",
+  chapterId = "",
+  classId = "",
+}) {
   const [expandedQuestions, setExpandedQuestions] = useState({});
   const [page, setPage] = useState(1);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
 
-  const { data, isLoading, refetch } = useGetQuestionsQuery({ topicId, page });
+  const limit = page * 10;
+  const offset = (page - 1) * 10;
+
+  const {
+    data: allData,
+    isLoading: allDataLoading,
+    refetch: refetchAll,
+  } = useGetQuestionsQuery({ limit, offset }, { skip: topicId !== "" });
+
+  // Fetch topic-specific questions with the current page's offset
+  const {
+    data: topicQuestions,
+    isLoading: topicQuestionsLoading,
+    refetch: refetchTopic,
+  } = useGetQuestionsByTopicQuery(
+    {
+      topic_id: topicId,
+      offset: offset,
+      limit: limit,
+    },
+    {
+      skip: !topicId,
+    }
+  );
+
   const [deleteQuestion, { isLoading: isDeleting }] =
     useDeleteQuestionMutation();
 
+  const isLoading =
+    (topicId && topicQuestionsLoading) || (!topicId && allDataLoading);
+
+  // Reset to page 1 when topic changes
   useEffect(() => {
     setPage(1);
   }, [topicId]);
 
+  // Toggle question expansion
   const toggleExpand = (id) => {
     setExpandedQuestions((prev) => ({
       ...prev,
@@ -34,33 +72,34 @@ export default function QuestionList({ topicId = "" }) {
     }));
   };
 
+  // Handle question deletion
   const handleDelete = async () => {
     if (!selectedQuestionId) return;
 
     try {
       await deleteQuestion(selectedQuestionId).unwrap();
-      // toast({
-      //   title: "Muvaffaqiyatli",
-      //   description: "Savol o'chirildi",
-      // });
-      refetch();
+
+      // Refresh data based on current filter
+      if (topicId) {
+        refetchTopic();
+      } else {
+        refetchAll();
+      }
     } catch (error) {
-      // toast({
-      //   title: "Xatolik",
-      //   description: "Savolni o'chirishda xatolik yuz berdi",
-      //   variant: "destructive",
-      // });
+      console.error("Delete failed:", error);
     } finally {
       setDeleteDialogOpen(false);
       setSelectedQuestionId(null);
     }
   };
 
+  // Open delete confirmation dialog
   const confirmDelete = (id) => {
     setSelectedQuestionId(id);
     setDeleteDialogOpen(true);
   };
 
+  // Set badge colors based on difficulty level
   const getLevelColor = (level) => {
     switch (level) {
       case "easy":
@@ -74,14 +113,29 @@ export default function QuestionList({ topicId = "" }) {
     }
   };
 
+  // Get question type label
   const getTypeLabel = (type) => {
     return type === "mcq" ? "Test" : "Open";
   };
 
+  // Handle pagination
+  const handlePreviousPage = () => {
+    if (page > 1) {
+      setPage(page - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    setPage(page + 1);
+  };
+
+  // Determine which data to display
+  const questionsToDisplay = topicId ? topicQuestions : allData;
+
   if (isLoading) {
     return (
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-5">
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
           <Card key={i}>
             <CardContent className="p-6">
               <div className="space-y-4">
@@ -99,21 +153,35 @@ export default function QuestionList({ topicId = "" }) {
     );
   }
 
-  if (!data || data.length === 0) {
+  if (!questionsToDisplay || questionsToDisplay.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <p className="text-gray-500">Questions not found</p>
+      <Card className="mt-4">
+        <CardContent className="p-6 text-center space-y-5">
+          <p className="text-gray-500">
+            {topicId
+              ? "No questions found for this topic"
+              : "Questions not found"}
+          </p>
+          <Button
+            variant="outline"
+            onClick={handlePreviousPage}
+            disabled={page === 1}
+          >
+            Previous
+          </Button>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-4  ">
+    <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {data.map((question) => (
-          <Card key={question.id} className="overflow-hidden p-0">
+        {questionsToDisplay.map((question) => (
+          <Card
+            key={question.id}
+            className="overflow-hidden p-0 shadow hover:shadow-md transition-shadow"
+          >
             <CardContent className="p-0">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-3">
@@ -137,9 +205,9 @@ export default function QuestionList({ topicId = "" }) {
                       onClick={() => toggleExpand(question.id)}
                     >
                       {expandedQuestions[question.id] ? (
-                        <ChevronUp />
+                        <ChevronUp className="h-4 w-4" />
                       ) : (
-                        <ChevronDown />
+                        <ChevronDown className="h-4 w-4" />
                       )}
                     </Button>
                     <Button variant="ghost" size="icon">
@@ -149,7 +217,9 @@ export default function QuestionList({ topicId = "" }) {
                       variant="ghost"
                       size="icon"
                       onClick={() => confirmDelete(question.id)}
-                      disabled={isDeleting}
+                      disabled={
+                        isDeleting && selectedQuestionId === question.id
+                      }
                     >
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
@@ -181,7 +251,7 @@ export default function QuestionList({ topicId = "" }) {
                               <div
                                 key={index}
                                 className={`p-3 rounded-md ${
-                                  option.uz === question.answer[0]
+                                  option === question.answer[0]
                                     ? "bg-green-50 border border-green-400"
                                     : "bg-gray-50"
                                 }`}
@@ -200,21 +270,18 @@ export default function QuestionList({ topicId = "" }) {
         ))}
       </div>
 
-      {data.length > 0 && (
+      {questionsToDisplay.length > 0 && (
         <div className="flex justify-center gap-2 mt-6">
           <Button
             variant="outline"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={handlePreviousPage}
             disabled={page === 1}
           >
-            Oldingi
+            Previous
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => setPage((p) => p + 1)}
-            disabled={data.length < 10} // Assuming 10 items per page
-          >
-            Keyingi
+          <span className="flex items-center px-4">{page}</span>
+          <Button variant="outline" onClick={handleNextPage}>
+            Next
           </Button>
         </div>
       )}

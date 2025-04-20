@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Filter } from "lucide-react";
 import QuestionList from "@/components/questions/GetQuestions";
 import QuestionForm from "@/components/questions/Questions";
 
@@ -25,22 +25,41 @@ export default function QuestionsPage() {
   const [chapterId, setChapterId] = useState("");
   const [topicId, setTopicId] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
 
   const { data: classes, isLoading: classesLoading } = useGetClassQuery();
-  const { data: chapters, isLoading: chaptersLoading } =
-    useGetChaptersQuery(classId);
-  const { data: topics, isLoading: topicsLoading } =
-    useGetTopicsQuery(chapterId);
+
+  const { data: chapters, isLoading: chaptersLoading } = useGetChaptersQuery(
+    classId,
+    { skip: !classId }
+  );
+
+  const { data: topics, isLoading: topicsLoading } = useGetTopicsQuery(
+    chapterId,
+    { skip: !chapterId }
+  );
 
   useEffect(() => {
-    setChapterId("");
-    setTopicId("");
+    if (classId === "") {
+      setChapterId("");
+      setTopicId("");
+      setIsFiltering(false);
+    } else {
+      setChapterId("");
+      setTopicId("");
+      setIsFiltering(true);
+    }
   }, [classId]);
 
   useEffect(() => {
-    setTopicId("");
+    if (chapterId === "") {
+      setTopicId("");
+    } else {
+      setTopicId("");
+    }
   }, [chapterId]);
 
+  // Tanlangan qiymatlarni boshqarish uchun handlerlar
   const handleClassChange = (value) => {
     setClassId(value === "all" ? "" : value);
   };
@@ -53,11 +72,29 @@ export default function QuestionsPage() {
     setTopicId(value === "all" ? "" : value);
   };
 
+  // Filterni tozalash
+  const handleClearFilters = () => {
+    setClassId("");
+    setChapterId("");
+    setTopicId("");
+    setIsFiltering(false);
+  };
+
   return (
     <div className="space-y-6 p-4">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle>Filter Questions</CardTitle>
+          {isFiltering && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClearFilters}
+              className="text-gray-500"
+            >
+              <X className="h-4 w-4 mr-1" /> Clear filters
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-end md:flex-row gap-6 mb-4">
@@ -176,7 +213,7 @@ export default function QuestionsPage() {
         </CardContent>
       </Card>
 
-      <QuestionList topicId={topicId} />
+      <QuestionList topicId={topicId} chapterId={chapterId} classId={classId} />
 
       {isModalOpen && (
         <div className="fixed inset-0 h-screen bg-black/80 flex items-center justify-center z-50">
@@ -187,7 +224,15 @@ export default function QuestionsPage() {
             >
               <X />
             </button>
-            <QuestionForm onSuccess={() => setIsModalOpen(false)} />
+            <QuestionForm
+              selectedClass={classId}
+              selectedChapter={chapterId}
+              selectedTopic={topicId}
+              onSuccess={() => {
+                setIsModalOpen(false);
+                // Forma muvaffaqiyatli yuborilgandan so'ng savollar ro'yxatini yangilash
+              }}
+            />
           </div>
         </div>
       )}

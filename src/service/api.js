@@ -17,14 +17,27 @@ const api = createApi({
   tagTypes: ["Class"],
   endpoints: (builder) => ({
     getQuestions: builder.query({
-      query: () => ({
-        url: `/getquestions`,
+      query: ({ limit = 10, offset = 0 }) => ({
+        url: `/getquestions?limit=${limit}&offset=${offset}`,
         headers: { "Content-Type": "application/json" },
       }),
     }),
-    getQuestion: builder.query({
-      query: (id) => ({
-        url: `/questions/${id}`,
+    getQuestionsByTopic: builder.query({
+      query: ({ topic_id, limit = 10, offset = 0 }) => ({
+        url: `/questions/get/${topic_id}?limit=${limit}&offset=${offset}&lang=uz`,
+        headers: { "Content-Type": "application/json" },
+      }),
+    }),
+    getQuestionsByChapter: builder.query({
+      query: ({ chapter_id, limit = 10, offset = 0 }) => ({
+        url: `/getquestions?chapter_id=${chapter_id}&limit=${limit}&offset=${offset}`,
+        headers: { "Content-Type": "application/json" },
+      }),
+    }),
+
+    getQuestionsByClass: builder.query({
+      query: ({ class_id, limit = 10, offset = 0 }) => ({
+        url: `/getquestions?class_id=${class_id}&limit=${limit}&offset=${offset}`,
         headers: { "Content-Type": "application/json" },
       }),
     }),
@@ -80,7 +93,7 @@ const api = createApi({
 
 export const {
   useGetQuestionsQuery,
-  useGetQuestionQuery,
+  useGetQuestionsByTopicQuery,
   useGetClassQuery,
   useGetChaptersQuery,
   useAddTopicMutation,
@@ -88,5 +101,7 @@ export const {
   useGetAllTopicsQuery,
   useAddQuestionMutation,
   useDeleteQuestionMutation,
+  useGetQuestionsByChapterQuery,
+  useGetQuestionsByClassQuery,
 } = api;
 export default api;
