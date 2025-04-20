@@ -355,13 +355,13 @@ export default function QuestionJson() {
             <ul className="list-disc pl-5 space-y-1">
               <li>Make sure all property names are in double quotes</li>
               <li>
-                For information.type use: "multiple_choice" or "short_answer"
+                For information.type use: "mcq" or "open"
               </li>
               <li>
                 For information.difficulty use: "easy", "medium", or "hard"
               </li>
               <li>
-                information.index format: class_chapter_topic_group_question
+                information.index format: class_chapter_topic_group_questionCount
                 (e.g., "1_1_1_1_1")
               </li>
               <li>
